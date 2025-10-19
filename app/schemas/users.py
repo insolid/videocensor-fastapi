@@ -1,7 +1,7 @@
 from fastapi_users import schemas
 
 
-class UserMixin:
+class VisibleFieldsMixin:
     model_config = {
         "json_schema_extra": {
             # Remove other fields from api docs
@@ -15,13 +15,17 @@ class UserMixin:
     }
 
 
+from datetime import datetime
+
+
 class UserRead(schemas.BaseUser[int]):
+    created_at: datetime
+    updated_at: datetime
+
+
+class UserCreate(VisibleFieldsMixin, schemas.BaseUserCreate):
     pass
 
 
-class UserCreate(UserMixin, schemas.BaseUserCreate):
-    pass
-
-
-class UserUpdate(UserMixin, schemas.BaseUserUpdate):
+class UserUpdate(VisibleFieldsMixin, schemas.BaseUserUpdate):
     pass

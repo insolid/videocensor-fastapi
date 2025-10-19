@@ -9,9 +9,9 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 
-from src.core.config import settings
-from src.core.db import SessionDep
-from src.models.users import User
+from app.core.config import settings
+from app.core.db import SessionDep
+from app.models.users import User
 
 SECRET = "SECRET"
 

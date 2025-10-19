@@ -1,3 +1,3 @@
-from src.utils.fastapi_users import fastapi_users
+from app.utils.fastapi_users import fastapi_users
 
 current_active_user = fastapi_users.current_user(active=True)

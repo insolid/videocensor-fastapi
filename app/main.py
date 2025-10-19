@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.api.v1 import auth, users
+from app.api.v1 import auth, users
 
 app = FastAPI()
 

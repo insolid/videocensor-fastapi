@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from src.schemas.users import UserRead, UserUpdate
-from src.utils.fastapi_users import fastapi_users as fu
+from app.schemas.users import UserRead, UserUpdate
+from app.utils.fastapi_users import fastapi_users as fu
 
 router = APIRouter(prefix="/users", tags=["users"])
 
