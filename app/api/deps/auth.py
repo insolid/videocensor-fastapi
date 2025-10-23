@@ -1,3 +1,9 @@
-from app.utils.fastapi_users import fastapi_users
+from typing import Annotated
 
-current_active_user = fastapi_users.current_user(active=True)
+from fastapi import Depends
+
+from app.models.users import User
+from app.utils.fastapi_users import fastapi_users as fu
+
+current_user = fu.current_user(active=True)
+CurrentUserDep = Annotated[User, Depends(current_user)]
