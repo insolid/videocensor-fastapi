@@ -3,15 +3,13 @@ import enum
 from sqlalchemy import Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.schemas.videojobs import Language
+
 from .base import Base
 
 
-class Language(str, enum.Enum):
-    EN = "en"
-    RU = "ru"
-
-
 class Status(str, enum.Enum):
+    PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -21,38 +19,41 @@ class VideoJob(Base):
     __tablename__ = "videojob"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
     title: Mapped[str | None] = mapped_column()
     size: Mapped[float | None] = mapped_column()
     language: Mapped[Language] = mapped_column(Enum(Language))
-    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PENDING)
+    input_video_path: Mapped[str] = mapped_column()
+    output_video_path: Mapped[str | None] = mapped_column()
 
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL")
+    )
     user: Mapped["User"] = relationship(back_populates="videojobs")
 
-    visual_setting_id: Mapped[int | None] = mapped_column(
-        ForeignKey("visual_setting.id")
+    visual_config_id: Mapped[int | None] = mapped_column(
+        ForeignKey("visual_config.id", ondelete="SET NULL")
     )
-    visual_setting: Mapped["VisualSetting"] = relationship(back_populates="videojobs")
+    visual_config: Mapped["VisualConfig"] = relationship()
 
-    audio_setting_id: Mapped[int | None] = mapped_column(ForeignKey("audio_setting.id"))
-    audio_setting: Mapped["AudioSetting"] = relationship(back_populates="videojobs")
+    audio_config_id: Mapped[int | None] = mapped_column(
+        ForeignKey("audio_config.id", ondelete="SET NULL")
+    )
+    audio_config: Mapped["AudioConfig"] = relationship()
 
 
-class VisualSetting(Base):
-    __tablename__ = "visual_setting"
+class VisualConfig(Base):
+    __tablename__ = "visual_config"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     smoking: Mapped[bool] = mapped_column(default=False)
     gore: Mapped[bool] = mapped_column(default=False)
-    videojobs: Mapped[list["VideoJob"]] = relationship(back_populates="visual_setting")
 
 
-class AudioSetting(Base):
-    __tablename__ = "audio_setting"
+class AudioConfig(Base):
+    __tablename__ = "audio_config"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     profanity: Mapped[bool] = mapped_column(default=False)
     hate_speech: Mapped[bool] = mapped_column(default=False)
-    own_words: Mapped[str] = mapped_column(default="")
-    videojobs: Mapped[list["VideoJob"]] = relationship(back_populates="audio_setting")
+    own_words: Mapped[str | None] = mapped_column()
