@@ -3,8 +3,6 @@ import enum
 from sqlalchemy import Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.schemas.videojobs import Language
-
 from .base import Base
 
 
@@ -13,6 +11,11 @@ class Status(str, enum.Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class Language(str, enum.Enum):
+    EN = "en"
+    RU = "ru"
 
 
 class VideoJob(Base):

@@ -16,6 +16,5 @@ class CommonQueryParams(BaseModel):
         return (self.page - 1) * self.limit
 
     def model_dump(self, **kwargs):
-        kwargs.setdefault("exclude_none", True)
         kwargs.setdefault("by_alias", True)
         return super().model_dump(**kwargs)

@@ -1,9 +1,9 @@
-import enum
 from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
+from app.models.videojobs import Language
 from app.schemas.query import CommonQueryParams
 
 
@@ -25,20 +25,20 @@ class AudioConfigCreate(BaseModel):
     own_words: str | None = None
 
 
-class Language(str, enum.Enum):
-    EN = "en"
-    RU = "ru"
-
-
 class VideoJobCreate(BaseModel):
     language: Language
     visual_config: VisualConfigCreate | None = None
     audio_config: AudioConfigCreate | None = None
 
 
+class VideoJobUpdate(BaseModel):
+    language: Language | None = None
+    visual_config: VisualConfigCreate | None = None
+    audio_config: AudioConfigCreate | None = None
+
+
 class VideoJobRead(BaseModel):
     id: int
-    user_id: int
     title: str | None = None
     language: Language
     visual_config: VisualConfigCreate | None = None
@@ -48,4 +48,3 @@ class VideoJobRead(BaseModel):
     status: str
 
     created_at: datetime
-    updated_at: datetime

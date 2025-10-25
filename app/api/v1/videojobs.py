@@ -1,15 +1,23 @@
+import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastcrud import JoinConfig
 
+from app.api.deps.auth import CurrentUserDep
+from app.api.deps.videojobs import VideoJobByIDFromUrl
+from app.core.config import settings
 from app.core.db import SessionDep
-from app.models.videojobs import AudioConfig, VideoJob, VisualConfig
-from app.schemas.videojobs import VideoJobCreate, VideojobQueryParams, VideoJobRead
+from app.models.videojobs import AudioConfig, Status, VideoJob, VisualConfig
+from app.schemas.videojobs import (
+    VideoJobCreate,
+    VideojobQueryParams,
+    VideoJobRead,
+    VideoJobUpdate,
+)
 from app.utils.fastcrud import CustomFastCRUD
 
-from ..deps.auth import CurrentUserDep
-from ..deps.videojobs import VideoJobByIDFromUrl
+from ..deps.videojobs import get_uploaded_video_file
 
 router = APIRouter(prefix="/videojobs", tags=["videojobs"])
 videojob_crud = CustomFastCRUD(model=VideoJob)
@@ -26,7 +34,7 @@ async def get_videojob(
 
 
 @router.get("/", response_model=list[VideoJobRead])
-async def get_videojobs(
+async def list_videojobs(
     db: SessionDep,
     q: Annotated[VideojobQueryParams, Query()],
     cur_user: CurrentUserDep,
@@ -46,8 +54,8 @@ async def get_videojobs(
                 join_prefix="audio_config",
             ),
         ],
-        **q.model_dump(),
         user=cur_user,
+        **q.model_dump(),
     )
 
 
@@ -68,12 +76,58 @@ async def create_videojob(
     return vj
 
 
+@router.patch("/{id}", response_model=VideoJobRead)
+async def update_videojob(
+    db: SessionDep,
+    vj: Annotated[
+        VideoJob,
+        Depends(VideoJobByIDFromUrl(VideoJob.visual_config, VideoJob.audio_config)),
+    ],
+    vj_data: VideoJobUpdate,
+):
+    if vj.status != Status.PENDING:
+        raise HTTPException(400, "Only pending videojobs can be updated")
+
+    data = vj_data.model_dump(exclude_unset=True)
+    visual_config = data.pop("visual_config", None)
+    audio_config = data.pop("audio_config", None)
+
+    for field, value in data.items():
+        setattr(vj, field, value)
+
+    # Update related visual and audio configs if provided
+    if visual_config:
+        for field, value in visual_config.items():
+            setattr(vj.visual_config, field, value)
+    if audio_config:
+        for field, value in audio_config.items():
+            setattr(vj.audio_config, field, value)
+
+    await db.commit()
+    return vj
+
+
 @router.post("/{id}/upload-file")
 async def upload_video_file(
-    file: UploadFile,
+    file: Annotated[UploadFile, Depends(get_uploaded_video_file)],
     db: SessionDep,
-    videojob: Annotated[VideoJob, Depends(VideoJobByIDFromUrl())],
+    vj: Annotated[VideoJob, Depends(VideoJobByIDFromUrl())],
+    cur_user: CurrentUserDep,
 ):
-    videojob.output_video_path = f"/path/to/videos/{file.filename}"
+    if vj.status != Status.PENDING:
+        raise HTTPException(400, "Only pending videojobs can be updated")
+
+    file_dir = settings.video_storage_path / cur_user.email
+    os.makedirs(file_dir, exist_ok=True)
+    file_name = f"{vj.id}_{file.filename}"
+    file_path = file_dir / file_name
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    vj.input_video_path = file_path.as_posix()
+    vj.status = Status.PROCESSING
+    vj.title = file_name
     await db.commit()
-    return videojob
+    # TODO: run celery task to process the video
+    return vj
