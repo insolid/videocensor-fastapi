@@ -1,6 +1,7 @@
 import os
 from typing import Annotated
 
+import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastcrud import JoinConfig
 
@@ -13,6 +14,7 @@ from app.schemas.videojobs import (
     VideoJobCreate,
     VideojobQueryParams,
     VideoJobRead,
+    VideoJobReadShort,
     VideoJobUpdate,
 )
 from app.utils.fastcrud import CustomFastCRUD
@@ -23,7 +25,11 @@ router = APIRouter(prefix="/videojobs", tags=["videojobs"])
 videojob_crud = CustomFastCRUD(model=VideoJob)
 
 
-@router.get("/{id}", response_model=VideoJobRead)
+@router.get(
+    "/{id}",
+    response_model=VideoJobRead,
+    name="videojobs:get_one",
+)
 async def get_videojob(
     videojob: Annotated[
         VideoJob,
@@ -33,7 +39,11 @@ async def get_videojob(
     return videojob
 
 
-@router.get("/", response_model=list[VideoJobRead])
+@router.get(
+    "/",
+    response_model=list[VideoJobRead],
+    name="videojobs:list",
+)
 async def list_videojobs(
     db: SessionDep,
     q: Annotated[VideojobQueryParams, Query()],
@@ -59,7 +69,12 @@ async def list_videojobs(
     )
 
 
-@router.post("/", response_model=VideoJobRead)
+@router.post(
+    "/",
+    response_model=VideoJobRead,
+    name="videojobs:create",
+    status_code=201,
+)
 async def create_videojob(
     db: SessionDep,
     videojob: VideoJobCreate,
@@ -76,7 +91,11 @@ async def create_videojob(
     return vj
 
 
-@router.patch("/{id}", response_model=VideoJobRead)
+@router.patch(
+    "/{id}",
+    response_model=VideoJobRead,
+    name="videojobs:update",
+)
 async def update_videojob(
     db: SessionDep,
     vj: Annotated[
@@ -107,7 +126,11 @@ async def update_videojob(
     return vj
 
 
-@router.post("/{id}/upload-file")
+@router.post(
+    "/{id}/upload-file",
+    response_model=VideoJobReadShort,
+    name="videojobs:upload_file",
+)
 async def upload_video_file(
     file: Annotated[UploadFile, Depends(get_uploaded_video_file)],
     db: SessionDep,
@@ -118,14 +141,15 @@ async def upload_video_file(
         raise HTTPException(400, "Only pending videojobs can be updated")
 
     file_dir = settings.video_storage_path / cur_user.email
-    os.makedirs(file_dir, exist_ok=True)
     file_name = f"{vj.id}_{file.filename}"
     file_path = file_dir / file_name
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
+    os.makedirs(file_dir, exist_ok=True)
 
-    vj.input_video_path = file_path.as_posix()
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
+
+    vj.input_video_path = str(file_path)
     vj.status = Status.PROCESSING
     vj.title = file_name
     await db.commit()

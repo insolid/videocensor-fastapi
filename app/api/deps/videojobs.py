@@ -33,7 +33,6 @@ class VideoJobByIDFromUrl:
 async def get_uploaded_video_file(file: UploadFile) -> UploadFile:
     allowed_file_types = {"video/mp4", "video/mpeg"}
     if file.content_type not in allowed_file_types:
-        raise HTTPException(
-            400, f"Invalid file type. Allowed types: {allowed_file_types}"
-        )
+        msg = f"Invalid file type. Allowed types: {', '.join(allowed_file_types)}"
+        raise HTTPException(400, msg)
     return file
