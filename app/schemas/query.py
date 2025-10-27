@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, computed_field
 
 
-class CommonQueryParams(BaseModel):
+class CommonQuery(BaseModel):
     page: Annotated[int, Field(ge=1, exclude=True)] = 1
     limit: Annotated[int, Field(ge=1)] = 50
     order: Annotated[

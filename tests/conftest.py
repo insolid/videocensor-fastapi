@@ -11,8 +11,8 @@ from app.models.base import Base
 from app.models.users import User
 from app.utils.fastapi_users import get_jwt_strategy
 
-# TEST_DB_URL = "sqlite+aiosqlite:///./test_db.db"
-TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DB_URL = "sqlite+aiosqlite:///./test_db.db"
+# TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 engine = create_async_engine(TEST_DB_URL)
 local_session = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
@@ -27,18 +27,48 @@ async def setup_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture
-async def db() -> AsyncGenerator[AsyncSession, None]:
-    async with local_session() as session:
-        yield session
-
-
+# =======================1st approach=======================
 async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
     async with local_session() as session:
         yield session
 
 
 application.dependency_overrides[get_db] = override_get_db
+
+
+@pytest_asyncio.fixture
+async def db():
+    async for session in override_get_db():
+        yield session
+
+
+# ======================2nd approach (INCORRECT)==================
+# @pytest_asyncio.fixture
+# async def db():
+#     async with local_session() as session:
+#         yield session
+
+
+# async def override_get_db(db: AsyncSession):
+#     yield db
+
+
+# application.dependency_overrides[get_db] = override_get_db
+
+
+# ===========================3rd approach=========================
+# @pytest_asyncio.fixture
+# async def db():
+#     async with local_session() as session:
+#         yield session
+
+
+# @pytest_asyncio.fixture(autouse=True, scope="session")
+# async def override_get_db(db: AsyncSession):
+#     async def f():
+#         yield db
+
+#     application.dependency_overrides[get_db] = f
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -65,11 +95,7 @@ async def test_user(db: AsyncSession) -> User:
 
 
 @pytest_asyncio.fixture
-async def token(test_user: User) -> str:
-    return await get_jwt_strategy().write_token(test_user)
-
-
-@pytest_asyncio.fixture
-async def auth_client(token: str, client: AsyncClient):
+async def auth_client(test_user: User, client: AsyncClient) -> AsyncClient:
+    token = await get_jwt_strategy().write_token(test_user)
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client

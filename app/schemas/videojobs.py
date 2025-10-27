@@ -4,10 +4,10 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 from app.models.videojobs import Language
-from app.schemas.query import CommonQueryParams
+from app.schemas.query import CommonQuery
 
 
-class VideojobQueryParams(CommonQueryParams):
+class VideojobQueryParams(CommonQuery):
     sort_by: Annotated[
         Literal["id", "created_at"],
         Field(serialization_alias="sort_columns"),
@@ -39,6 +39,7 @@ class VideoJobUpdate(BaseModel):
 
 class VideoJobRead(BaseModel):
     id: int
+    user_id: int
     language: Language
     visual_config: VisualConfigCreate | None = None
     audio_config: AudioConfigCreate | None = None

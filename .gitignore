@@ -208,3 +208,5 @@ __marimo__/
 
 
 storage/
+
+test_db.db

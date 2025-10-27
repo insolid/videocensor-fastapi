@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a3770628909d
+Revision ID: 7f89aef34d78
 Revises:
-Create Date: 2025-10-23 16:00:43.612038
+Create Date: 2025-10-27 17:08:52.704795
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "a3770628909d"
+revision: str = "7f89aef34d78"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,6 +47,7 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("role", sa.Enum("USER", "ADMIN", name="role"), nullable=False),
         sa.Column("email", sa.String(length=320), nullable=False),
         sa.Column("hashed_password", sa.String(length=1024), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
@@ -91,7 +92,7 @@ def upgrade() -> None:
             sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", name="status"),
             nullable=False,
         ),
-        sa.Column("input_video_path", sa.String(), nullable=False),
+        sa.Column("input_video_path", sa.String(), nullable=True),
         sa.Column("output_video_path", sa.String(), nullable=True),
         sa.Column("user_id", sa.Integer(), nullable=True),
         sa.Column("visual_config_id", sa.Integer(), nullable=True),
