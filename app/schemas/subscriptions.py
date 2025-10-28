@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
+from app.models.subscriptions import Currency
 from app.schemas.query import CommonQuery
 
 
@@ -18,27 +19,22 @@ class PlanCreate(BaseModel):
     title: str
     description: str
     duration_months: int
-    price: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
-    currency: str
+    price: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
+    currency: Currency
 
 
 class PlanUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     duration_months: int | None = None
-    price: Annotated[Decimal | None, Field(ge=0, max_digits=10, decimal_places=2)] = (
+    price: Annotated[Decimal | None, Field(gt=0, max_digits=10, decimal_places=2)] = (
         None
     )
-    currency: str | None = None
+    currency: Currency | None = None
 
 
-class PlanRead(BaseModel):
+class PlanRead(PlanCreate):
     id: int
-    title: str
-    description: str
-    duration_months: int
-    price: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
-    currency: str
 
 
 class SubscriptionQuery(CommonQuery):
@@ -51,10 +47,9 @@ class SubscriptionCreate(BaseModel):
     plan_id: int
 
 
-class SubscriptionRead(BaseModel):
+class SubscriptionRead(SubscriptionCreate):
     id: int
     is_active: bool
     start_date: date | None = None
     end_date: date | None = None
     user_id: int
-    plan_id: int

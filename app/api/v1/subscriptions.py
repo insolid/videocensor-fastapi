@@ -18,7 +18,7 @@ from app.utils.fastcrud import CustomFastCRUD
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 plan_crud = CustomFastCRUD(model=Plan, updated_at_column="")
-subscription_crud = CustomFastCRUD(model=Subscription)
+subscription_crud = CustomFastCRUD(model=Subscription, updated_at_column="")
 
 
 # =============== Plans ===============

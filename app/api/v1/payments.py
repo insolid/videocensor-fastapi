@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 
 import yookassa as yk
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from app.api.deps.auth import CurrentUserDep
 from app.core.config import settings
@@ -28,7 +28,7 @@ payment_crud = CustomFastCRUD(Payment, updated_at_column="")
 
 @router.get(
     "/payments",
-    response_model=list[PaymentRead],
+    # response_model=list[PaymentRead],
     name="payments:list_payments",
 )
 async def list_payments(
@@ -45,11 +45,11 @@ async def get_payment(id: int, db: SessionDep, cur_user: CurrentUserDep):
 
 
 @router.post(
-    "/plans/{plan_id}/create-payment",
-    response_model=PaymentCreateResponse,
-    name="payments:create_payment",
+    "/plans/{plan_id}/buy-subscription",
+    response_model=PaymentCreateResponse | dict[str, str],
+    name="payments:buy_subscription",
 )
-async def create_payment(
+async def buy_subscription(
     payment_data: PaymentCreate,
     db: SessionDep,
     cur_user: CurrentUserDep,
@@ -58,34 +58,42 @@ async def create_payment(
     plan = await plan_crud.get(db, id=plan_id)
     sub = Subscription(user_id=cur_user.id, plan_id=plan_id)
     payment = Payment(
-        amount=plan["amount"],
+        amount=plan["price"],
         currency=plan["currency"],
         method="NEVERMIND",
-        subscription_id=sub.id,
         user_id=cur_user.id,
     )
     db.add_all([sub, payment])
+    await db.flush()
+    payment.subscription_id = sub.id
+
+    try:
+        yk_payment = yk.Payment.create(
+            {
+                "amount": {
+                    "value": plan["price"],
+                    "currency": plan["currency"].value,
+                },
+                "confirmation": {
+                    "type": "redirect",
+                    "return_url": payment_data.return_url,
+                },
+                "capture": True,
+                "description": f'Payment for {plan["title"]}',
+                "metadata": {
+                    "payment_id": payment.id,
+                    "subscription_id": sub.id,
+                },
+            },
+            uuid.uuid4(),
+        )
+    except Exception as e:
+        print(e)
+        await db.rollback()
+        raise HTTPException(400, "Something went wrong")
+
     await db.commit()
 
-    # TODO: implement yookassa payment creation
-
-    yk_payment = yk.Payment.create(
-        {
-            # TODO: Include commission to amount
-            "amount": {
-                "value": payment.amount,
-                "currency": payment.currency,
-            },
-            "confirmation": {
-                "type": "redirect",
-                "return_url": payment_data.return_url,
-            },
-            "capture": True,
-            "description": f'Payment for {plan["title"]}',
-            "metadata": {
-                "payment_id": payment.id,
-                "subscription_id": sub.id,
-            },
-        },
-        uuid.uuid4(),
+    return PaymentCreateResponse(
+        confirmation_url=yk_payment.confirmation.confirmation_url
     )

@@ -5,6 +5,7 @@ from sqlalchemy import DECIMAL, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .subscriptions import Currency
 
 
 class Status(str, enum.Enum):
@@ -18,7 +19,7 @@ class Payment(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
-    currency: Mapped[str] = mapped_column()
+    currency: Mapped[Currency] = mapped_column(Enum(Currency))
     method: Mapped[str] = mapped_column()
     status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
 

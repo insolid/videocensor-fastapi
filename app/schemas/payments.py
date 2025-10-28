@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 from app.schemas.query import CommonQuery
 
@@ -11,7 +11,7 @@ class PaymentCreate(BaseModel):
 
 
 class PaymentCreateResponse(BaseModel):
-    confirmation_url: str
+    confirmation_url: HttpUrl
 
 
 class PaymentRead(PaymentCreate):

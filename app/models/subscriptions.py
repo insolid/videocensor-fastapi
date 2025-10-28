@@ -1,10 +1,15 @@
+import enum
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import DECIMAL, ForeignKey
+from sqlalchemy import DECIMAL, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+
+
+class Currency(str, enum.Enum):
+    RUB = "RUB"
 
 
 class Plan(Base):
@@ -15,7 +20,7 @@ class Plan(Base):
     description: Mapped[str] = mapped_column()
     duration_months: Mapped[int] = mapped_column()
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
-    currency: Mapped[str] = mapped_column()
+    currency: Mapped[Currency] = mapped_column(Enum(Currency))
 
 
 class Subscription(Base):

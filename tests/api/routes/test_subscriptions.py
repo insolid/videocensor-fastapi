@@ -26,14 +26,14 @@ async def test_list_plans(app: FastAPI, client: AsyncClient, db: AsyncSession):
         description="Basic",
         duration_months=1,
         price=9.99,
-        currency="USD",
+        currency="RUB",
     )
     plan2 = Plan(
         title="Pro",
         description="Pro",
         duration_months=6,
         price=49.99,
-        currency="USD",
+        currency="RUB",
     )
     db.add_all([plan1, plan2])
     await db.commit()
@@ -49,7 +49,7 @@ async def test_get_plan(app: FastAPI, client: AsyncClient, db: AsyncSession):
         description="Basic",
         duration_months=1,
         price=9.99,
-        currency="USD",
+        currency="RUB",
     )
     db.add(plan)
     await db.commit()
