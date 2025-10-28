@@ -19,8 +19,8 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
     currency: Mapped[str] = mapped_column()
-    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
     method: Mapped[str] = mapped_column()
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
 
     subscription_id: Mapped[int | None] = mapped_column(
         ForeignKey("subscription.id", ondelete="SET NULL")

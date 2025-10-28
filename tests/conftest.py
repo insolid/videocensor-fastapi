@@ -11,8 +11,8 @@ from app.models.base import Base
 from app.models.users import User
 from app.utils.fastapi_users import get_jwt_strategy
 
-TEST_DB_URL = "sqlite+aiosqlite:///./test_db.db"
-# TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+# TEST_DB_URL = "sqlite+aiosqlite:///test_db.db"
+TEST_DB_URL = "sqlite+aiosqlite://"
 
 engine = create_async_engine(TEST_DB_URL)
 local_session = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
@@ -37,7 +37,7 @@ application.dependency_overrides[get_db] = override_get_db
 
 
 @pytest_asyncio.fixture
-async def db():
+async def db() -> AsyncGenerator[AsyncSession, None]:
     async for session in override_get_db():
         yield session
 

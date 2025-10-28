@@ -11,10 +11,9 @@ from app.schemas.subscriptions import (
     PlanQuery,
     PlanRead,
     PlanUpdate,
-    SubscriptionCreate,
+    SubscriptionQuery,
     SubscriptionRead,
 )
-from app.utils.db import exists_or_error
 from app.utils.fastcrud import CustomFastCRUD
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -87,24 +86,12 @@ async def get_subscription(db: SessionDep, id: int, cur_user: CurrentUserDep):
     response_model=list[SubscriptionRead],
     name="subscriptions:list_subscriptions",
 )
-async def list_subscriptions(db: SessionDep, cur_user: CurrentUserDep):
-    return await subscription_crud.get_multi(db, user_id=cur_user.id)
-
-
-@router.post(
-    "/", response_model=SubscriptionRead, name="subscriptions:create_subscription"
-)
-async def create_subscription(
+async def list_subscriptions(
     db: SessionDep,
-    subscription: SubscriptionCreate,
     cur_user: CurrentUserDep,
+    q: Annotated[SubscriptionQuery, Query()],
 ):
-    await exists_or_error(db, Plan.id, subscription.plan_id)
-    sub = Subscription(**subscription.model_dump(), user_id=cur_user.id)
-    db.add(sub)
-    await db.commit()
-    await db.refresh(sub)
-    return sub
+    return await subscription_crud.get_multi(db, user_id=cur_user.id, **q.model_dump())
 
 
 @router.post(

@@ -7,13 +7,13 @@ class CustomFastCRUD(FastCRUD):
     async def get(self, *args, **kwargs):
         item = await super().get(*args, **kwargs)
         if not item:
-            raise HTTPException(404, "Item not found")
+            raise HTTPException(404, f"{self.model.__name__} not found")
         return item
 
     async def get_joined(self, *args, **kwargs):
         item = await super().get_joined(*args, **kwargs)
         if not item:
-            raise HTTPException(404, "Item not found")
+            raise HTTPException(404, f"{self.model.__name__} not found")
         return item
 
     async def get_multi(self, *args, **kwargs):
@@ -29,10 +29,10 @@ class CustomFastCRUD(FastCRUD):
             kwargs.setdefault("return_as_model", True)
             return await super().update(**kwargs)
         except NoResultFound:
-            raise HTTPException(404, "Item not found")
+            raise HTTPException(404, f"{self.model.__name__} not found")
 
     async def delete(self, *args, **kwargs):
         try:
             return await super().delete(*args, **kwargs)
         except NoResultFound:
-            raise HTTPException(404, "Item not found")
+            raise HTTPException(404, f"{self.model.__name__} not found")

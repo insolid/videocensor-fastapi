@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.v1 import auth, subscriptions, users, videojobs
+from app.api.v1 import auth, payments, subscriptions, users, videojobs
 
 app = FastAPI()
 
@@ -8,6 +8,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(videojobs.router)
 app.include_router(subscriptions.router)
+app.include_router(payments.router)
 
 
 @app.get("/clear-db")

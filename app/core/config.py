@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int
     jwt_algorithm: str
 
+    yookassa_account_id: int
+    yookassa_secret_key: str
+
     video_storage_path: Path = root / "storage"
 
     model_config = SettingsConfigDict(env_file=root / ".env")

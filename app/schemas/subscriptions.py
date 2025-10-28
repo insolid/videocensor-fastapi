@@ -43,13 +43,11 @@ class PlanRead(BaseModel):
 
 class SubscriptionQuery(CommonQuery):
     sort_by: Annotated[
-        Literal["id", "created_at"],
-        Field(serialization_alias="sort_columns"),
+        Literal["id", "created_at"], Field(serialization_alias="sort_columns")
     ] = "created_at"
 
 
 class SubscriptionCreate(BaseModel):
-    is_active: bool = False
     plan_id: int
 
 
