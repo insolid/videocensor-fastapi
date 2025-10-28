@@ -28,7 +28,7 @@ payment_crud = CustomFastCRUD(Payment, updated_at_column="")
 
 @router.get(
     "/payments",
-    # response_model=list[PaymentRead],
+    response_model=list[PaymentRead],
     name="payments:list_payments",
 )
 async def list_payments(
@@ -46,7 +46,7 @@ async def get_payment(id: int, db: SessionDep, cur_user: CurrentUserDep):
 
 @router.post(
     "/plans/{plan_id}/buy-subscription",
-    response_model=PaymentCreateResponse | dict[str, str],
+    response_model=PaymentCreateResponse | dict,
     name="payments:buy_subscription",
 )
 async def buy_subscription(
@@ -60,7 +60,6 @@ async def buy_subscription(
     payment = Payment(
         amount=plan["price"],
         currency=plan["currency"],
-        method="NEVERMIND",
         user_id=cur_user.id,
     )
     db.add_all([sub, payment])

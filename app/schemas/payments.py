@@ -14,13 +14,13 @@ class PaymentCreateResponse(BaseModel):
     confirmation_url: HttpUrl
 
 
-class PaymentRead(PaymentCreate):
-    id: int
-    status: str
-    amount: Decimal
-    currency: str
-    method: str
-    subscription_id: int
+class PaymentRead(BaseModel):
+    id: int | None
+    status: str | None
+    amount: Decimal | None
+    currency: str | None
+    method: str | None
+    subscription_id: int | None
 
 
 class PaymentQuery(CommonQuery):

@@ -37,19 +37,12 @@ class VideoJobUpdate(BaseModel):
     audio_config: AudioConfigCreate | None = None
 
 
-class VideoJobRead(BaseModel):
+class VideoJobReadShort(BaseModel):
     id: int
-    user_id: int
-    language: Language
-    visual_config: VisualConfigCreate | None = None
-    audio_config: AudioConfigCreate | None = None
     input_video_path: str | None = None
     status: str
 
+
+class VideoJobRead(VideoJobReadShort, VideoJobCreate):
+    user_id: int
     created_at: datetime
-
-
-class VideoJobReadShort(BaseModel):
-    id: int
-    input_video_path: str
-    status: str

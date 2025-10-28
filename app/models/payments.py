@@ -20,7 +20,7 @@ class Payment(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
     currency: Mapped[Currency] = mapped_column(Enum(Currency))
-    method: Mapped[str] = mapped_column()
+    method: Mapped[str | None] = mapped_column()
     status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
 
     subscription_id: Mapped[int | None] = mapped_column(
