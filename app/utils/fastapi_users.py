@@ -13,6 +13,8 @@ from app.core.config import settings
 from app.core.db import SessionDep
 from app.models.users import User
 
+from .emails import send_email
+
 SECRET = "SECRET"
 
 
@@ -26,6 +28,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
 
     async def on_after_register(self, user: User, request: Request | None = None):
         print(f"User {user.id} has registered.")
+        await send_email(user.email, "Congrats", "You have successfully registered!")
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Request | None = None

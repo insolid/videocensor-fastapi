@@ -6,10 +6,6 @@ from pydantic import BaseModel, Field, HttpUrl
 from app.schemas.query import CommonQuery
 
 
-class PaymentCreate(BaseModel):
-    return_url: str
-
-
 class PaymentCreateResponse(BaseModel):
     confirmation_url: HttpUrl
 

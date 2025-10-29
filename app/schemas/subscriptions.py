@@ -43,13 +43,10 @@ class SubscriptionQuery(CommonQuery):
     ] = "created_at"
 
 
-class SubscriptionCreate(BaseModel):
-    plan_id: int
-
-
-class SubscriptionRead(SubscriptionCreate):
+class SubscriptionRead(BaseModel):
     id: int
     is_active: bool
     start_date: date | None = None
     end_date: date | None = None
     user_id: int
+    plan_id: int

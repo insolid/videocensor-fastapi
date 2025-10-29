@@ -19,6 +19,7 @@ from app.schemas.videojobs import (
 )
 from app.utils.fastcrud import CustomFastCRUD
 
+from ..deps.auth import user_has_active_subscription
 from ..deps.videojobs import get_uploaded_video_file
 
 router = APIRouter(prefix="/videojobs", tags=["videojobs"])
@@ -74,6 +75,7 @@ async def list_videojobs(
     response_model=VideoJobRead,
     name="videojobs:create",
     status_code=201,
+    dependencies=[Depends(user_has_active_subscription)],
 )
 async def create_videojob(
     db: SessionDep,
@@ -95,6 +97,7 @@ async def create_videojob(
     "/{id}",
     response_model=VideoJobRead,
     name="videojobs:update",
+    dependencies=[Depends(user_has_active_subscription)],
 )
 async def update_videojob(
     db: SessionDep,
@@ -130,6 +133,7 @@ async def update_videojob(
     "/{id}/upload-file",
     response_model=VideoJobReadShort,
     name="videojobs:upload_file",
+    dependencies=[Depends(user_has_active_subscription)],
 )
 async def upload_video_file(
     file: Annotated[UploadFile, Depends(get_uploaded_video_file)],

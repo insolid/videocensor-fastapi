@@ -29,7 +29,11 @@ async def get_plan(db: SessionDep, id: int):
     return await plan_crud.get(db, id=id)
 
 
-@router.get("/plans", response_model=list[PlanRead], name="subscriptions:list_plans")
+@router.get(
+    "/plans",
+    response_model=list[PlanRead],
+    name="subscriptions:list_plans",
+)
 async def list_plans(db: SessionDep, q: Annotated[PlanQuery, Query()]):
     return await plan_crud.get_multi(db, **q.model_dump())
 
@@ -38,7 +42,7 @@ async def list_plans(db: SessionDep, q: Annotated[PlanQuery, Query()]):
     "/plans",
     response_model=PlanRead,
     name="subscriptions:create_plan",
-    dependencies=[Depends(user_has_role(role=Role.ADMIN))],
+    dependencies=[Depends(user_has_role(Role.ADMIN))],
 )
 async def create_plan(db: SessionDep, plan: PlanCreate):
     return await plan_crud.create(db, plan)
@@ -48,7 +52,7 @@ async def create_plan(db: SessionDep, plan: PlanCreate):
     "/plans/{id}",
     response_model=PlanRead,
     name="subscriptions:update_plan",
-    dependencies=[Depends(user_has_role(role=Role.ADMIN))],
+    dependencies=[Depends(user_has_role(Role.ADMIN))],
 )
 async def update_plan(db: SessionDep, id: int, plan: PlanUpdate):
     return await plan_crud.update(
@@ -63,7 +67,7 @@ async def update_plan(db: SessionDep, id: int, plan: PlanUpdate):
     "/plans/{id}",
     response_model=None,
     name="subscriptions:delete_plan",
-    dependencies=[Depends(user_has_role(role=Role.ADMIN))],
+    dependencies=[Depends(user_has_role(Role.ADMIN))],
 )
 async def delete_plan(db: SessionDep, id: int):
     return await plan_crud.delete(db, id=id)
