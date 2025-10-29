@@ -3,6 +3,7 @@ import uuid
 from typing import Annotated
 
 import yookassa as yk
+from dateutil.relativedelta import relativedelta
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -13,14 +14,14 @@ from fastapi import (
     Request,
 )
 from pydantic import HttpUrl
-from sqlalchemy.orm import selectinload
 
-from app.api.deps.auth import CurrentUserDep
+from app.api.deps.auth import CurrentUserDep, user_has_no_active_subscription
 from app.core.config import settings
 from app.core.db import SessionDep
 from app.models.payments import Payment, Status
-from app.models.subscriptions import Plan, Subscription
+from app.models.subscriptions import Subscription
 from app.schemas.payments import PaymentCreateResponse, PaymentQuery, PaymentRead
+from app.utils.emails import send_email
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.payments import is_yookassa_ip
@@ -56,6 +57,7 @@ async def get_payment(id: int, db: SessionDep, cur_user: CurrentUserDep):
     "/plans/{plan_id}/buy-subscription",
     response_model=PaymentCreateResponse | dict,
     name="payments:buy_subscription",
+    dependencies=[Depends(user_has_no_active_subscription)],
 )
 async def buy_subscription(
     return_url: Annotated[HttpUrl, Body(embed=True)],
@@ -118,24 +120,26 @@ async def yookassa_webhook(bg_tasks: BackgroundTasks, req: Request, db: SessionD
     subscription_id = int(payload["object"]["metadata"]["subscription_id"])
 
     payment = await db.get(Payment, payment_id)
-    subscription = await db.get(
-        Subscription,
-        subscription_id,
-        options=[selectinload(Subscription.plan).load_only(Plan.duration_months)],
-    )
+    subscription = await db.get(Subscription, subscription_id)
 
     if not payment or not subscription:
         raise HTTPException(404)
 
     if payload["event"] == "payment.succeeded":
         payment.status = Status.COMPLETED
-
         today = datetime.date.today()
         subscription.start_date = today
-        subscription.end_date = today + datetime.timedelta(
-            30 * subscription.plan.duration_months
+        subscription.end_date = today + relativedelta(
+            months=(await subscription.awaitable_attrs.plan).duration_months
         )
         subscription.is_active = True
+
+        bg_tasks.add_task(
+            send_email,
+            (await subscription.awaitable_attrs.user).email,
+            "Subscription Activated",
+            f"Your subscription is active.",
+        )
     elif payload["event"] == "payment.failed":
         payment.status = Status.FAILED
 

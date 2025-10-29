@@ -18,7 +18,7 @@ class PlanQuery(CommonQuery):
 class PlanCreate(BaseModel):
     title: str
     description: str
-    duration_months: int
+    duration_months: int = Field(gt=0)
     price: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
     currency: Currency
 

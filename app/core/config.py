@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     yookassa_account_id: int
     yookassa_secret_key: str
 
+    mail_username: str
+    mail_password: str
+
     video_storage_path: Path = root / "storage"
 
     model_config = SettingsConfigDict(env_file=root / ".env")

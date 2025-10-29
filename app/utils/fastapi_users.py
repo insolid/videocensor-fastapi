@@ -1,6 +1,6 @@
 import re
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException
 from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
@@ -26,37 +26,38 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
-    async def on_after_register(self, user: User, request: Request | None = None):
-        print(f"User {user.id} has registered.")
-        await send_email(user.email, "Congrats", "You have successfully registered!")
+    async def on_after_forgot_password(self, user: User, token: str, *args, **kwargs):
+        await send_email(
+            user.email,
+            "Forgot password",
+            f"https://frontend.org/forgot-password/{token}",
+        )
 
-    async def on_after_forgot_password(
-        self, user: User, token: str, request: Request | None = None
-    ):
-        print(f"User {user.id} has forgot their password. Reset token: {token}")
-
-    async def on_after_request_verify(
-        self, user: User, token: str, request: Request | None = None
-    ):
+    async def on_after_request_verify(self, user: User, token: str, *args, **kwargs):
         # Send to email a frontend endpoint for email confirmation with token like this:
-        # http://frontend/email/confirm/CjP8DXvZPnwgTo5Pe072Jp6m0M
+        # http://frontend/confirm-email/CjP8DXvZPnwgTo5Pe072Jp6m0M
         # And then frontend extracts that token and resends to server
-        print(f"Verification requested for user {user.id}. Verification token: {token}")
+        await send_email(
+            user.email,
+            "Verify email",
+            f"https://frontend.org/confirm-email/{token}",
+        )
 
     async def validate_password(self, password: str, *args, **kwargs):
         errors = {}
 
         if len(password) < 6:
-            errors["length"] = "Password must be at least 6 characters long"
+            errors["length"] = "At least 6 chars required"
         if not re.search(r"[A-Z]", password):
-            errors["uppercase"] = "Password must contain at least one uppercase letter"
+            errors["uppercase"] = "At least one uppercase letter required"
         if not re.search(r"[a-z]", password):
-            errors["lowercase"] = "Password must contain at least one lowercase letter"
+            errors["lowercase"] = "At least one lowercase letter required"
         if not re.search(r"[0-9]", password):
-            errors["number"] = "Password must contain at least one number"
-        if not re.search(r"[!@#$%^&*()]", password):
+            errors["number"] = "At least one number required"
+        special_chars = "!@#$%^&*()"
+        if not re.search(rf"[{special_chars}]", password):
             errors["special_chars"] = (
-                "Password must contain at least one special character"
+                f"At least one of special characters required: {special_chars}"
             )
 
         if errors:
@@ -83,21 +84,3 @@ auth_backend = AuthenticationBackend(
     name="jwt", transport=bearer_transport, get_strategy=get_jwt_strategy
 )
 fastapi_users = FastAPIUsers[User, int](get_user_manager, [auth_backend])
-
-
-# Create a user programmatically
-# get_db_context = contextlib.asynccontextmanager(get_db)
-# get_user_db_context = contextlib.asynccontextmanager(get_user_db)
-# get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
-
-
-# async def create_user(email: str, password: str, is_superuser: bool = False):
-#     async with get_db_context() as session:
-#         async with get_user_db_context(session) as user_db:
-#             async with get_user_manager_context(user_db) as user_manager:
-#                 user = await user_manager.create(
-#                     UserCreate(
-#                         email=email, password=password, is_superuser=is_superuser
-#                     )
-#                 )
-#                 return user
