@@ -134,6 +134,7 @@ async def update_videojob(
     response_model=VideoJobReadShort,
     name="videojobs:upload_file",
     dependencies=[Depends(user_has_active_subscription)],
+    summary="Upload video and start processing",
 )
 async def upload_video_file(
     file: Annotated[UploadFile, Depends(get_uploaded_video_file)],

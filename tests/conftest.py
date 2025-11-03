@@ -87,7 +87,7 @@ async def client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest_asyncio.fixture
 async def test_user(db: AsyncSession) -> User:
-    user = User(email="test@example.com", hashed_password="password")
+    user = User(email="test@example.com", hashed_password="password", is_verified=True)
     db.add(user)
     await db.commit()
     await db.refresh(user)
