@@ -1,4 +1,4 @@
-# VideoCensor
+
 
 ## Description
 
@@ -8,12 +8,12 @@
 
 - 🔑 User accounts & login
 - 📼 Upload videos for censorship
-- 🔊 Audio: Beeps out profanity, hate speech, or your own custom words
-- 👀 Video: Blurs smoking and gore scenes
+- 🔊 Audio: Beep out profanity, hate speech, or your own custom words
+- 👀 Video: Blur smoking and gore scenes
 - 💳 Subscriptions & payments (YooKassa)
 - 📧 Email notifications (like password reset)
 
-## Tech Stack 🛠️
+## Tech Stack ⚙️
 
 - **FastAPI**
 - **SQLAlchemy** (async version)
