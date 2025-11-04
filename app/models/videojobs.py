@@ -60,6 +60,3 @@ class AudioConfig(Base):
     profanity: Mapped[bool] = mapped_column(default=False)
     hate_speech: Mapped[bool] = mapped_column(default=False)
     own_words: Mapped[str | None] = mapped_column()
-
-    def is_applied(self) -> bool:
-        return self.profanity or self.hate_speech or bool(self.own_words)

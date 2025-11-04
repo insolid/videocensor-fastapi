@@ -2,10 +2,10 @@ import os
 import re
 import subprocess
 import uuid
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Protocol
 
 import cv2
 from faster_whisper import WhisperModel
@@ -24,13 +24,13 @@ class WordInfo:
     end: float
 
 
-class ITranscriber(ABC):
-    @abstractmethod
-    def transcribe_with_timestamps(self, file_path: str, lang: str) -> list[WordInfo]:
-        pass
+class TranscriberProtocol(Protocol):
+    def transcribe_with_timestamps(
+        self, file_path: str, lang: str
+    ) -> list[WordInfo]: ...
 
 
-class Transcriber(ITranscriber, WhisperModel):
+class Transcriber(WhisperModel):
     def transcribe_with_timestamps(self, file_path: str, lang: str) -> list[WordInfo]:
         segments = super().transcribe(file_path, lang, word_timestamps=True)[0]
         words = []
@@ -51,12 +51,11 @@ class Transcriber(ITranscriber, WhisperModel):
         return words
 
     def _normalize_word(self, word):
-        """Bring the word to the valid format"""
         return re.sub(r"[^\w-]", "", word.lower().strip())
 
 
 class AudioCensor:
-    def __init__(self, transcriber: ITranscriber):
+    def __init__(self, transcriber: TranscriberProtocol):
         self.transcriber = transcriber
 
     def censor(
@@ -112,7 +111,7 @@ class VisualCensor:
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = cv2.VideoWriter.fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
         model = YOLO(settings.yolo_model_path)
@@ -136,7 +135,7 @@ class VideoJobService:
     def __init__(self, videojob: VideoJob) -> None:
         self.vj = videojob
 
-    def censor(self, tmp_files_dir: Path, output_path: str):
+    def censor_video(self, tmp_files_dir: Path, output_path: str):
         """Apply visual and audio censorship and save result video"""
         if not self._has_audio_config() and not self._has_visual_config():
             return self._save_video_as_is(output_path)
@@ -144,25 +143,23 @@ class VideoJobService:
         censored_audio_path = None
         censored_picture_path = None
 
-        # Apply audio censorship if needed
+        # Apply audio censorship
         if self._has_audio_config():
-            ban_words = self._get_ban_words()
             transcriber = Transcriber("medium", device="cpu", compute_type="int8")
             audio_censor = AudioCensor(transcriber)
             censored_audio_path = audio_censor.censor(
                 self.vj.input_video_path,  # type: ignore
                 str(tmp_files_dir / f"{uuid.uuid4()}.wav"),
-                ban_words,
+                self._get_ban_words(),
                 self.vj.language.value,
             )
 
-        # Apply visual censorship if needed
+        # Apply visual censorship
         if self._has_visual_config():
-            ban_class_idxs = self._get_ban_class_idxs()
             censored_picture_path = VisualCensor().censor(
                 self.vj.input_video_path,  # type: ignore
                 str(tmp_files_dir / f"{uuid.uuid4()}.mp4"),
-                ban_class_idxs,
+                self._get_ban_class_idxs(),
             )
 
         # Save the censored video to result path

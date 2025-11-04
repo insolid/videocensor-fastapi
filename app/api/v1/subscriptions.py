@@ -21,7 +21,7 @@ plan_crud = CustomFastCRUD(model=Plan, updated_at_column="")
 subscription_crud = CustomFastCRUD(model=Subscription, updated_at_column="")
 
 
-# =============== Plans ===============
+# Plans
 
 
 @router.get("/plans/{id}", response_model=PlanRead, name="subscriptions:get_plan")
@@ -73,7 +73,7 @@ async def delete_plan(db: SessionDep, id: int):
     return await plan_crud.delete(db, id=id)
 
 
-# =============== Subscriptions ===============
+# Subscriptions
 
 
 @router.get(
