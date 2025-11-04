@@ -2,14 +2,13 @@
 
 ## Description
 
-**VideoCensor** is a REST API that automatically censors videos. It can beep out ban words in the audio and blur unwanted objects in the video (like smoking or gore) based on user settings.
+The REST API that automatically censors videos. It can beep out ban words in the audio and blur unwanted objects in the video (like smoking or gore) based on user settings.
 
 ## Features ✨
 
-- 🔑 User accounts & login
-- 📼 Upload videos for censorship
-- 🔊 Audio: Beep out profanity, hate speech, or your own custom words
-- 👀 Video: Blur smoking and gore scenes
+- 🔑 User accounts & login 
+- 🔊 Beep out offensive language in audio
+- 👀 Blur smoking and gore scenes in video
 - 💳 Subscriptions & payments (YooKassa)
 - 📧 Email notifications (like password reset)
 
@@ -18,10 +17,9 @@
 - **FastAPI**
 - **SQLAlchemy** (async version)
 - **Alembic**
-- **pytest**
+- **Pytest**
 - **Fastapi-users** (auth & user management)
 - **FastCRUD** (automatic endpoint generation)
 - **YOLO** (object detection)
-- **Whisper** (speech-to-text)
-- **pydub** (audio editing)
+- **FasterWhisper** (speech-to-text)
 - **YooKassa** (payments)
