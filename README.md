@@ -1,4 +1,4 @@
-# 🎬 VideoCensor
+# VideoCensor
 
 ## Description
 
