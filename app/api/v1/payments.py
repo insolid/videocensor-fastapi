@@ -25,11 +25,11 @@ from app.utils.emails import send_email
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.payments import is_yookassa_ip
+from .subscriptions import plan_crud
 
 yk.Configuration.account_id = settings.yookassa_account_id
 yk.Configuration.secret_key = settings.yookassa_secret_key
 
-from .subscriptions import plan_crud
 
 router = APIRouter(prefix="", tags=["payments"])
 payment_crud = CustomFastCRUD(Payment, updated_at_column="")

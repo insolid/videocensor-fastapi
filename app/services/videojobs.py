@@ -7,7 +7,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
 
+import aiofiles
 import cv2
+from fastapi import UploadFile
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.generators import Sine
@@ -135,7 +137,7 @@ class VideoJobService:
     def __init__(self, videojob: VideoJob) -> None:
         self.vj = videojob
 
-    def censor_video(self, tmp_files_dir: Path, output_path: str):
+    def censor_video(self, tmp_files_dir: str, output_path: str) -> str | None:
         """Apply visual and audio censorship and save result video"""
         if not self._has_audio_config() and not self._has_visual_config():
             return self._save_video_as_is(output_path)
@@ -149,7 +151,7 @@ class VideoJobService:
             audio_censor = AudioCensor(transcriber)
             censored_audio_path = audio_censor.censor(
                 self.vj.input_video_path,  # type: ignore
-                str(tmp_files_dir / f"{uuid.uuid4()}.wav"),
+                os.path.join(tmp_files_dir, f"{uuid.uuid4()}.wav"),
                 self._get_ban_words(),
                 self.vj.language.value,
             )
@@ -158,7 +160,7 @@ class VideoJobService:
         if self._has_visual_config():
             censored_picture_path = VisualCensor().censor(
                 self.vj.input_video_path,  # type: ignore
-                str(tmp_files_dir / f"{uuid.uuid4()}.mp4"),
+                os.path.join(tmp_files_dir, f"{uuid.uuid4()}.mp4"),
                 self._get_ban_class_idxs(),
             )
 
@@ -263,3 +265,9 @@ class VideoJobService:
             output_path,
         ]
         subprocess.run(stmt)
+
+
+async def save_videofile(src: UploadFile, dst: Path | str):
+    async with aiofiles.open(dst, "wb") as f:
+        content = await src.read()
+        await f.write(content)

@@ -25,7 +25,7 @@ class VideoJob(Base):
     title: Mapped[str | None] = mapped_column()
     size: Mapped[float | None] = mapped_column()
     language: Mapped[Language] = mapped_column(Enum(Language))
-    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PENDING)
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PENDING.value)
     input_video_path: Mapped[str | None] = mapped_column()
     output_video_path: Mapped[str | None] = mapped_column()
 

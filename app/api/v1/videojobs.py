@@ -1,7 +1,6 @@
 import os
 from typing import Annotated
 
-import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastcrud import JoinConfig
 
@@ -17,6 +16,7 @@ from app.schemas.videojobs import (
     VideoJobReadShort,
     VideoJobUpdate,
 )
+from app.services.videojobs import save_videofile
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.auth import user_has_active_subscription
@@ -139,7 +139,10 @@ async def update_videojob(
 async def upload_video_file(
     file: Annotated[UploadFile, Depends(get_uploaded_video_file)],
     db: SessionDep,
-    vj: Annotated[VideoJob, Depends(VideoJobByIDFromUrl())],
+    vj: Annotated[
+        VideoJob,
+        Depends(VideoJobByIDFromUrl(VideoJob.audio_config, VideoJob.visual_config)),
+    ],
     cur_user: CurrentUserDep,
 ):
     if vj.status != Status.PENDING:
@@ -150,13 +153,17 @@ async def upload_video_file(
     file_path = file_dir / file_name
     os.makedirs(file_dir, exist_ok=True)
 
-    async with aiofiles.open(file_path, "wb") as f:
-        content = await file.read()
-        await f.write(content)
+    await save_videofile(file, file_path)
 
     vj.input_video_path = str(file_path)
     vj.status = Status.PROCESSING
     vj.title = file_name
     await db.commit()
+
     # TODO: run celery task to process the video
+    # vj_service = VideoJobService(vj)
+    # tmp_dir = settings.video_storage_path / "tmp"
+    # os.makedirs(tmp_dir, exist_ok=True)
+    # output_video_path = file_dir / f"censored_{file_name}"
+    # vj_service.censor_video(str(tmp_dir), str(output_video_path))
     return vj

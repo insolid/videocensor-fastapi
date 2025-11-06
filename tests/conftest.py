@@ -19,7 +19,7 @@ local_session = async_sessionmaker(engine, expire_on_commit=False, autoflush=Fal
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def setup_database():
+async def setup_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -27,7 +27,6 @@ async def setup_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-# =======================1st approach=======================
 async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
     async with local_session() as session:
         yield session
@@ -42,35 +41,6 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-# ======================2nd approach (INCORRECT)==================
-# @pytest_asyncio.fixture
-# async def db():
-#     async with local_session() as session:
-#         yield session
-
-
-# async def override_get_db(db: AsyncSession):
-#     yield db
-
-
-# application.dependency_overrides[get_db] = override_get_db
-
-
-# ===========================3rd approach=========================
-# @pytest_asyncio.fixture
-# async def db():
-#     async with local_session() as session:
-#         yield session
-
-
-# @pytest_asyncio.fixture(autouse=True, scope="session")
-# async def override_get_db(db: AsyncSession):
-#     async def f():
-#         yield db
-
-#     application.dependency_overrides[get_db] = f
-
-
 @pytest_asyncio.fixture(scope="session")
 async def app() -> FastAPI:
     return application
@@ -79,8 +49,7 @@ async def app() -> FastAPI:
 @pytest_asyncio.fixture
 async def client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
+        transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
 
