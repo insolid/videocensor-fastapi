@@ -13,6 +13,7 @@ from fastapi import (
     Query,
     Request,
 )
+from fastapi.concurrency import run_in_threadpool
 from pydantic import HttpUrl
 
 from app.api.deps.auth import CurrentUserDep, user_has_no_active_subscription
@@ -77,22 +78,14 @@ async def buy_subscription(
     payment.subscription_id = sub.id
 
     try:
-        yk_payment = yk.Payment.create(
+        yk_payment = await run_in_threadpool(
+            yk.Payment.create,
             {
-                "amount": {
-                    "value": plan["price"],
-                    "currency": plan["currency"].value,
-                },
-                "confirmation": {
-                    "type": "redirect",
-                    "return_url": return_url,
-                },
+                "amount": {"value": plan["price"], "currency": plan["currency"].value},
+                "confirmation": {"type": "redirect", "return_url": return_url},
                 "capture": True,
                 "description": f'Payment for {plan["title"]}',
-                "metadata": {
-                    "payment_id": payment.id,
-                    "subscription_id": sub.id,
-                },
+                "metadata": {"payment_id": payment.id, "subscription_id": sub.id},
             },
             uuid.uuid4(),
         )

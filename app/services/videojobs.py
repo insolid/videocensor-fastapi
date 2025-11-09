@@ -4,12 +4,9 @@ import subprocess
 import uuid
 from dataclasses import dataclass
 from functools import lru_cache
-from pathlib import Path
 from typing import Protocol
 
-import aiofiles
 import cv2
-from fastapi import UploadFile
 from faster_whisper import WhisperModel
 from pydub import AudioSegment
 from pydub.generators import Sine
@@ -265,9 +262,3 @@ class VideoJobService:
             output_path,
         ]
         subprocess.run(stmt)
-
-
-async def save_videofile(src: UploadFile, dst: Path | str):
-    async with aiofiles.open(dst, "wb") as f:
-        content = await src.read()
-        await f.write(content)

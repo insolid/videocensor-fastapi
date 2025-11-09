@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.db import get_db
 from app.main import app as application
 from app.models.base import Base
+from app.models.subscriptions import Plan
 from app.models.users import User
 from app.utils.fastapi_users import get_jwt_strategy
 
@@ -68,3 +69,18 @@ async def auth_client(test_user: User, client: AsyncClient) -> AsyncClient:
     token = await get_jwt_strategy().write_token(test_user)
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client
+
+
+@pytest_asyncio.fixture
+async def basic_plan(db: AsyncSession) -> Plan:
+    plan = Plan(
+        title="Basic",
+        description="Basic Plan",
+        duration_months=1,
+        price=9.99,
+        currency="RUB",
+    )
+    db.add(plan)
+    await db.commit()
+    await db.refresh(plan)
+    return plan

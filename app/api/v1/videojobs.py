@@ -1,6 +1,7 @@
 import os
 from typing import Annotated
 
+import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastcrud import JoinConfig
 
@@ -16,7 +17,6 @@ from app.schemas.videojobs import (
     VideoJobReadShort,
     VideoJobUpdate,
 )
-from app.services.videojobs import save_videofile
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.auth import user_has_active_subscription
@@ -153,7 +153,9 @@ async def upload_video_file(
     file_path = file_dir / file_name
     os.makedirs(file_dir, exist_ok=True)
 
-    await save_videofile(file, file_path)
+    async with aiofiles.open(file_path, "wb") as f:
+        content = await file.read()
+        await f.write(content)
 
     vj.input_video_path = str(file_path)
     vj.status = Status.PROCESSING
