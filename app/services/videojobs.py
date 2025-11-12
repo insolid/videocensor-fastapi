@@ -29,7 +29,18 @@ class TranscriberProtocol(Protocol):
     ) -> list[WordInfo]: ...
 
 
-class Transcriber(WhisperModel):
+class Singleton(type):
+    """Meta class to apply singleton pattern to class"""
+
+    _inctances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._inctances:
+            cls._inctances[cls] = super().__call__(*args, **kwargs)
+        return cls._inctances[cls]
+
+
+class Transcriber(WhisperModel, metaclass=Singleton):
     def transcribe_with_timestamps(self, file_path: str, lang: str) -> list[WordInfo]:
         segments = super().transcribe(file_path, lang, word_timestamps=True)[0]
         words = []
@@ -150,7 +161,7 @@ class VideoJobService:
                 self.vj.input_video_path,  # type: ignore
                 os.path.join(tmp_files_dir, f"{uuid.uuid4()}.wav"),
                 self._get_ban_words(),
-                self.vj.language.value,
+                self.vj.language.value.lower(),
             )
 
         # Apply visual censorship

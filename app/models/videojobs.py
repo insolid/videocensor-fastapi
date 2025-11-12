@@ -7,15 +7,15 @@ from .base import Base
 
 
 class Status(str, enum.Enum):
-    PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
 
 class Language(str, enum.Enum):
-    EN = "en"
-    RU = "ru"
+    EN = "EN"
+    RU = "RU"
 
 
 class VideoJob(Base):
@@ -25,7 +25,7 @@ class VideoJob(Base):
     title: Mapped[str | None] = mapped_column()
     size: Mapped[float | None] = mapped_column()
     language: Mapped[Language] = mapped_column(Enum(Language))
-    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PENDING.value)
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PENDING)
     input_video_path: Mapped[str | None] = mapped_column()
     output_video_path: Mapped[str | None] = mapped_column()
 

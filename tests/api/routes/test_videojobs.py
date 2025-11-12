@@ -61,7 +61,7 @@ async def test_create_videojob(
     await db.commit()
 
     payload = {
-        "language": "en",
+        "language": Language.RU,
         "visual_config": {"smoking": True},
         "audio_config": {"profanity": True},
     }
@@ -84,7 +84,7 @@ async def test_update_videojob(
     db.add_all([vj, Subscription(user=test_user, is_active=True)])
     await db.commit()
 
-    payload = {"language": "ru", "visual_config": {"smoking": False}}
+    payload = {"language": Language.EN, "visual_config": {"smoking": False}}
     res = await auth_client.patch(
         app.url_path_for("videojobs:update", id=vj.id), json=payload
     )

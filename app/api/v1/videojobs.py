@@ -17,6 +17,7 @@ from app.schemas.videojobs import (
     VideoJobReadShort,
     VideoJobUpdate,
 )
+from app.services.videojobs import VideoJobService
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.auth import user_has_active_subscription
@@ -163,9 +164,9 @@ async def upload_video_file(
     await db.commit()
 
     # TODO: run celery task to process the video
-    # vj_service = VideoJobService(vj)
-    # tmp_dir = settings.video_storage_path / "tmp"
-    # os.makedirs(tmp_dir, exist_ok=True)
-    # output_video_path = file_dir / f"censored_{file_name}"
-    # vj_service.censor_video(str(tmp_dir), str(output_video_path))
+    vj_service = VideoJobService(vj)
+    tmp_dir = settings.video_storage_path / "tmp"
+    os.makedirs(tmp_dir, exist_ok=True)
+    output_video_path = file_dir / f"censored_{file_name}"
+    vj_service.censor_video(str(tmp_dir), str(output_video_path))
     return vj

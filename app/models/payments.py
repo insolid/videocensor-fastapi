@@ -9,9 +9,9 @@ from .subscriptions import Currency
 
 
 class Status(str, enum.Enum):
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
 
 class Payment(Base):
@@ -21,9 +21,7 @@ class Payment(Base):
     amount: Mapped[Decimal] = mapped_column(DECIMAL(10, 2))
     currency: Mapped[Currency] = mapped_column(Enum(Currency))
     method: Mapped[str | None] = mapped_column()
-    status: Mapped[Status] = mapped_column(
-        Enum(Status), default=Status.PROCESSING.value
-    )
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.PROCESSING)
 
     subscription_id: Mapped[int | None] = mapped_column(
         ForeignKey("subscription.id", ondelete="SET NULL")
