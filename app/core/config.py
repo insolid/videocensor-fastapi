@@ -25,6 +25,8 @@ class Settings(BaseSettings):
             path=self.postgres_db,
         )
 
+    celery_broker_url: str
+
     jwt_secret_key: str
     jwt_expire_minutes: int
     jwt_algorithm: str

@@ -30,14 +30,14 @@ class TranscriberProtocol(Protocol):
 
 
 class Singleton(type):
-    """Meta class to apply singleton pattern to class"""
+    """Meta class to make singleton class"""
 
-    _inctances = {}
+    _instances = {}
 
     def __call__(cls, *args, **kwargs):
-        if cls not in cls._inctances:
-            cls._inctances[cls] = super().__call__(*args, **kwargs)
-        return cls._inctances[cls]
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
 class Transcriber(WhisperModel, metaclass=Singleton):
