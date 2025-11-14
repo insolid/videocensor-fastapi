@@ -127,8 +127,10 @@ async def test_upload_video_file_for_videojob(
 
     file = {"file": ("test.mp4", "content", "video/mp4")}
 
-    with patch("app.api.v1.videojobs.aiofiles.open"), patch(
-        "app.api.v1.videojobs.os.makedirs"
+    with (
+        patch("app.api.v1.videojobs.aiofiles.open"),
+        patch("app.api.v1.videojobs.os.makedirs"),
+        patch("app.api.v1.videojobs.censor_video.delay"),
     ):
         res = await auth_client.post(
             app.url_path_for("videojobs:upload_file", id=vj.id), files=file

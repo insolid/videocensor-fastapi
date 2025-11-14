@@ -7,7 +7,6 @@ from fastcrud import JoinConfig
 
 from app.api.deps.auth import CurrentUserDep
 from app.api.deps.videojobs import VideoJobByIDFromUrl
-from app.celery_app import censor_video
 from app.core.config import settings
 from app.core.db import SessionDep
 from app.models.videojobs import AudioConfig, Status, VideoJob, VisualConfig
@@ -18,7 +17,7 @@ from app.schemas.videojobs import (
     VideoJobReadShort,
     VideoJobUpdate,
 )
-from app.services.videojobs import VideoJobService
+from app.tasks import censor_video
 from app.utils.fastcrud import CustomFastCRUD
 
 from ..deps.auth import user_has_active_subscription
@@ -143,7 +142,7 @@ async def upload_video_file(
     db: SessionDep,
     vj: Annotated[
         VideoJob,
-        Depends(VideoJobByIDFromUrl(VideoJob.audio_config, VideoJob.visual_config)),
+        Depends(VideoJobByIDFromUrl(VideoJob.visual_config, VideoJob.audio_config)),
     ],
     cur_user: CurrentUserDep,
 ):
@@ -164,10 +163,9 @@ async def upload_video_file(
     vj.title = file_name
     await db.commit()
 
-    # TODO: run celery task to process the video
-    vj_service = VideoJobService(vj)
+    # Run celery task to censor the video
     tmp_dir = settings.video_storage_path / "tmp"
     os.makedirs(tmp_dir, exist_ok=True)
     output_video_path = file_dir / f"censored_{file_name}"
-    censor_video.delay(vj_service, str(tmp_dir), str(output_video_path))
+    censor_video.delay(vj.id, str(tmp_dir), str(output_video_path))
     return vj

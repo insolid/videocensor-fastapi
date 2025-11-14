@@ -5,6 +5,7 @@ services:
       - 8000:8000
     volumes:
       - .:/app
+      - video_storage:${VIDEO_STORAGE_PATH}
     env_file:
       - .env
     command: fastapi dev app/main.py --host 0.0.0.0
@@ -23,9 +24,10 @@ services:
 
   celery:
     build: .
-    command: celery -A app.celery_app worker --loglevel=info
+    command: celery -A app.celery worker --loglevel=info
     volumes:
       - .:/app
+      - video_storage:${VIDEO_STORAGE_PATH}
     env_file:
       - .env
     depends_on:
@@ -33,3 +35,4 @@ services:
 
 volumes:
   postgres_data:
+  video_storage:

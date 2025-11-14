@@ -44,5 +44,7 @@ class VideoJobReadShort(BaseModel):
 
 
 class VideoJobRead(VideoJobReadShort, VideoJobCreate):
-    user_id: int
+    title: str | None = None
+    size: float | None = None
+    output_video_path: str | None = None
     created_at: datetime

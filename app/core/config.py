@@ -37,12 +37,10 @@ class Settings(BaseSettings):
     mail_username: str
     mail_password: str
 
-    video_storage_path: Path = Path("/video-storage")
+    video_storage_path: Path
     yolo_model_path: Path = project_root / "censor-utils" / "gore-smoking-detector.pt"
 
     ban_words_dir: Path = project_root / "censor-utils" / "ban-words"
-
-    # model_config = SettingsConfigDict(env_file=project_root / ".env")
 
 
 settings = Settings()  # type: ignore
