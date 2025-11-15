@@ -24,10 +24,8 @@ def censor_video(videojob_id: int, tmp_dir: str, output_video_path: str):
                 selectinload(VideoJob.visual_config),
             ],
         )
-        if not vj:
-            raise ValueError(f"VideoJob with id {videojob_id} not found")
-        vj.status = Status.PROCESSING
-        db.commit()
+    if not vj:
+        raise ValueError(f"VideoJob with id {videojob_id} not found")
 
     vj_service = VideoJobService(vj)
     try:
@@ -37,11 +35,11 @@ def censor_video(videojob_id: int, tmp_dir: str, output_video_path: str):
         success = False
 
     with sync_session() as db:
-        db.merge(vj)
+        vj = db.merge(vj)
         if success:
             vj.status = Status.COMPLETED
             vj.output_video_path = output_video_path
-            vj.size = os.path.getsize(output_video_path) / (1024 * 1024)
+            vj.size = round(os.path.getsize(output_video_path) / (1024 * 1024), 2)
         else:
             vj.status = Status.FAILED
         db.commit()
